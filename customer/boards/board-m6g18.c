@@ -1610,7 +1610,7 @@ static void m6ref_set_vccx2(int power_on)
         aml_clr_reg32_mask(P_PREG_PAD_GPIO0_O,(1<<26));
         
         aml_set_reg32_bits(SECBUS2_REG_ADDR(0), 1, 0, 1);	// set TEST_n output mode
-        aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 1, 31, 1);  // set TEST_n pin H
+        aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 0, 31, 1);  // set TEST_n pin H
         // Test_n   system LED
 //      aml_set_reg32_bits(0xc8100024,0,31,1); 
 //		writel(0x80000004,0xc8100024);
@@ -1622,7 +1622,7 @@ static void m6ref_set_vccx2(int power_on)
         aml_set_reg32_mask(P_PREG_PAD_GPIO0_O,(1<<26));
         
         aml_set_reg32_bits(SECBUS2_REG_ADDR(0), 1, 0, 1);	// set TEST_n output mode
-        aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 0, 31, 1);  // set TEST_n pin H
+        aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 1, 31, 1);  // set TEST_n pin H
         
 //  		aml_set_reg32_bits(0xc8100024,1,31,1); 
 		
@@ -3142,7 +3142,7 @@ static __init void meson_init_early(void)
 
 }
 
-MACHINE_START(MESON6_G02, "Amlogic Meson6 g02 customer platform")
+MACHINE_START(MESON6_G02, "TinyHTPC ITV05 platform, http://tinyhtpc.co.nz")
     .boot_params    = BOOT_PARAMS_OFFSET,
     .map_io         = meson_map_io,///2
     .init_early     = meson_init_early,///3
