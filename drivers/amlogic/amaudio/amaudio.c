@@ -63,8 +63,6 @@ extern unsigned int read_i2s_mute_swap_reg(void);
 extern void audio_i2s_swap_left_right(unsigned int flag);
 extern void audio_in_i2s_set_buf(u32 addr, u32 size);
 extern void audio_in_i2s_enable(int flag);
-int cache_pcm_read(char __user *buf, int size);
-extern unsigned int playback_data_read_enable;
 extern int audio_out_buf_ready ;
 extern int audio_in_buf_ready;
 
@@ -72,8 +70,6 @@ extern unsigned int aml_pcm_playback_start_addr;
 extern unsigned int aml_pcm_capture_start_addr;
 extern unsigned int aml_pcm_capture_start_phy;
 extern unsigned int aml_pcm_capture_buf_size;
-
-extern unsigned int playback_sr;
 
 static dev_t amaudio_devno;
 static struct class* amaudio_clsp;
@@ -98,10 +94,6 @@ static unsigned int enable_resample_flag=0;
 static unsigned int resample_type_flag=0; //0-->no resample  processing
                                            //1-->down resample processing
                                            //2-->up     resample processing
-int resample_delta=0;
-EXPORT_SYMBOL(resample_delta);
-extern unsigned int timestamp_enable_resample_flag;
-extern unsigned int timestamp_resample_type_flag;
 //--------------------------------------------
 #define DEBUG_DUMP 1
 
@@ -179,8 +171,6 @@ static int get_audout_ptr(void)
 static int direct_audio_flag = DIRECT_AUDIO_OFF;
 static int direct_left_gain = 128;
 static int direct_right_gain = 128;
-static int music_left_gain = 256;
-static int music_right_gain = 256;
 
 static void direct_audio_ctrl(int flag)
 {
@@ -772,14 +762,13 @@ static ssize_t put_audout_buf_direct(amaudio_t* amaudio, void* dbuf, void* sbuf,
           sampL = *src ++;
           sampR = *src ++;
           sampLR = ((sampL * direct_left_gain) >> 8) + ((sampR * direct_right_gain) >> 8);
-          //samp = *left + sampLR;
-	  samp = (((*left)*music_left_gain)>>8) + sampLR;
+          samp = *left + sampLR;
           if(samp > 0x7fff) samp = 0x7fff;
           if(samp < -0x8000) samp = -0x8000;
           *left ++ = samp&0xffff;
 
-          //samp = *right + sampLR;
-	  samp = (((*right)*music_right_gain)>>8) + sampLR;
+          samp = *right + sampLR;
+
           if(samp > 0x7fff) samp = 0x7fff;
           if(samp < -0x8000) samp = -0x8000;
           *right ++ = samp&0xffff;
@@ -1134,13 +1123,6 @@ static ssize_t amaudio_read(struct file *file, char __user *buf,
       aprint("amaudio can not read less than 0\n");
       return -EINVAL;
     }
-/*  just use the software buffer to temp store the output sample data */	
-    if(amaudio->out_op_mode == 2)
-    {
-    	if(!if_audio_out_enable())
-		return 0;
-	 return cache_pcm_read(buf,count);	
-    }
     tmpBuf = (char*)kmalloc(count, GFP_KERNEL);
     if(tmpBuf == 0){
       aprint("amaudio_read alloc memory failed\n");
@@ -1298,7 +1280,7 @@ static int amaudio_open(struct inode *inode, struct file *file)
     init_timer(&amaudio_in.timer);
     mod_timer(&amaudio_in.timer, jiffies + 1);
 #else
-#if MESON_CPU_TYPE >= MESON_CPU_TYPE_MESON3
+#if ((defined CONFIG_SND_AML_M6)||(defined CONFIG_SND_AML_M3))
 	WRITE_MPEG_REG_BITS(AUDIN_INT_CTRL, 0, 1, 1);
 #else
 	WRITE_MPEG_REG_BITS(AUDIN_FIFO0_CTRL, 0, 18, 1);
@@ -1339,7 +1321,7 @@ static int amaudio_open(struct inode *inode, struct file *file)
   return 0;
 error:  
   kfree(amaudio);
-  return -1;
+  return 0;
 }
 static int amaudio_release(struct inode *inode, struct file *file)
 {
@@ -1353,10 +1335,7 @@ static int amaudio_release(struct inode *inode, struct file *file)
         free_irq(INT_AMRISC_DC_PCMLAST, &amaudio_out);
         audout_irq_alloced = 0;
       }
-#endif  
-      playback_data_read_enable = 0;
-
-      
+#endif      
       kfree(amaudio);
       kfree(amaudio_tmpbuf_out);
       amaudio_tmpbuf_out = 0;
@@ -1483,12 +1462,10 @@ static long amaudio_ioctl(struct file *file,
             amaudio->in_op_mode = arg;
             break;
         case AMAUDIO_IOC_SET_I2S_OUT_MODE:
-            if(arg < 0 || arg > 2){
+            if(arg < 0 || arg > 1){
               return -EINVAL;
             }
             amaudio->out_op_mode = arg;
-	     if(arg == 2)
-		 	playback_data_read_enable = 1;
             break;
 		case AMAUDIO_IOC_SET_LEFT_MONO:
 			audio_i2s_swap_left_right(1);
@@ -1515,10 +1492,6 @@ static long amaudio_ioctl(struct file *file,
         case AMAUDIO_IOC_DIRECT_RIGHT_GAIN:
             direct_audio_right_gain(arg);
             break;
-	case AMAUDIO_IOC_GET_PLAYBACK_SR:
-		if(!arg)
-			return -EINVAL;
-		*(int *)arg = playback_sr;
 		default:
 			break;
 		
@@ -1611,14 +1584,7 @@ static long amaudio_utils_ioctl(struct file *file,
             break;
         case AMAUDIO_IOC_SET_RESAMPLE_TYPE:
             resample_type_flag = arg;
-            break; 
-		case AMAUDIO_IOC_SET_RESAMPLE_DELTA:
-			resample_delta=arg;
-            break;
-        case AMAUDIO_IOC_GET_RESAMPLE_DELTA:
-            *((u32 *)arg) = resample_delta;
-			printk("set resample_delta=%d\n ",resample_delta);
-            break;
+            break;    
         default:
         	break;
     };
@@ -1857,10 +1823,8 @@ static ssize_t store_enable_resample(struct class* class, struct class_attribute
 {
   if(buf[0] == '0'){
     enable_resample_flag = 0;
-	timestamp_enable_resample_flag = 0;
   }else if(buf[0] == '1'){
     enable_resample_flag = 1;
-	timestamp_enable_resample_flag = 1;
   }
   return count;
 }
@@ -1875,6 +1839,7 @@ static ssize_t show_resample_type(struct class* class, struct class_attribute* a
      }else if(resample_type_flag==2){//2-->up resample processing
          return sprintf(buf, "UP\n");
      }
+     return sprintf(buf, "Error\n");
 }
 
 static ssize_t store_resample_type(struct class* class, struct class_attribute* attr,
@@ -1882,32 +1847,13 @@ static ssize_t store_resample_type(struct class* class, struct class_attribute* 
 {
   if(buf[0] == '0'){ 
     resample_type_flag = 0;  //0-->no resample  processing
-    timestamp_resample_type_flag = 0;
   }else if(buf[0] == '1'){     
     resample_type_flag = 1;  //1-->down resample processing
-    timestamp_resample_type_flag = 1;
   }else if(buf[0] == '2'){
     resample_type_flag = 2;  //2-->up resample processing
-    timestamp_resample_type_flag = 2;
   }
   return count;
 }
-
-static ssize_t show_resample_delta(struct class* class, struct class_attribute* attr,
-    char* buf)
-{
-  return sprintf(buf, "%d\n", resample_delta);
-}
-
-static ssize_t store_resample_delta(struct class* class, struct class_attribute* attr,
-    const char* buf, size_t count)
-{
-  int val = 0;
-  val = simple_strtoul(buf, NULL, 10);
-  printk("resample delta set to %d\n", val);
-  return count;
-}
-
 static ssize_t dac_mute_const_show(struct class*cla, struct class_attribute* attr, char* buf)
 {
   char* pbuf = buf;
@@ -1932,116 +1878,6 @@ static ssize_t output_enable_show(struct class* class, struct class_attribute* a
 {
      return sprintf(buf, "%d\n", if_audio_out_enable()); 
 }
-extern unsigned audioin_mode;
-enum {
-	I2SIN_MASTER_MODE = 0,
-	I2SIN_SLAVE_MODE  =   1<<0,
-	SPDIFIN_MODE   = 1<<1,
-};
-static ssize_t record_type_store(struct class* class, struct class_attribute* attr,
-   const char* buf, size_t count )
-{
-  if(buf[0] == '0'){
-    audioin_mode = I2SIN_MASTER_MODE;
-  }else if(buf[0] == '1'){
-    audioin_mode = I2SIN_SLAVE_MODE;
-  }
-  else if(buf[0] == '2'){
-     audioin_mode = SPDIFIN_MODE; 
-  }
-  return count;
-}
-
-static ssize_t record_type_show(struct class* class, struct class_attribute* attr,
-    char* buf)
-{
-     if(audioin_mode&I2SIN_MASTER_MODE){      //mic 
-         return sprintf(buf, "i2s in master mode for built in mic\n");
-     }else if(audioin_mode&SPDIFIN_MODE){//spdif in mode 
-         return sprintf(buf, "spdif in mode \n");
-     }else if(audioin_mode&I2SIN_SLAVE_MODE){//i2s in slave
-         return sprintf(buf, "i2s in slave mode \n");
-     }
-}
-static ssize_t direct_left_gain_show(struct class* class, struct class_attribute* attr, char* buf)
-{
-    return sprintf(buf, "%d\n", direct_left_gain);	
-}
-
-static ssize_t direct_left_gain_store(struct class* class, struct class_attribute* attr,
-   const char* buf, size_t count )
-{
- 	int val;
-  	if(buf[0])
-  		val=simple_strtol(buf, NULL, 16);
-	
-  	if(val < 0) val = 0;
-  	if(val > 256) val = 256;
-
-  	direct_left_gain = val;
-  	printk("direct_left_gain set to 0x%x\n", direct_left_gain);
-  	return count;
-}
-
-static ssize_t direct_right_gain_show(struct class* class, struct class_attribute* attr, char* buf)
-{
-    return sprintf(buf, "%d\n", direct_right_gain);	
-}
-
-static ssize_t direct_right_gain_store(struct class* class, struct class_attribute* attr,
-   const char* buf, size_t count )
-{
- 	int val;
-  	if(buf[0])
-  		val=simple_strtol(buf, NULL, 16);
-	
-  	if(val < 0) val = 0;
-  	if(val > 256) val = 256;
-
-  	direct_right_gain = val;
-  	printk("direct_right_gain set to 0x%x\n", direct_right_gain);
-  	return count;
-}
-
-static ssize_t music_left_gain_show(struct class* class, struct class_attribute* attr, char* buf)
-{
-    return sprintf(buf, "%d\n", music_left_gain);	
-}
-
-static ssize_t music_left_gain_store(struct class* class, struct class_attribute* attr,
-   const char* buf, size_t count )
-{
- 	int val;
-  	if(buf[0])
-  		val=simple_strtol(buf, NULL, 16);
-	
-  	if(val < 0) val = 0;
-  	if(val > 256) val = 256;
-
-  	music_left_gain = val;
-  	printk("music_left_gain set to 0x%x\n", music_left_gain);
-  	return count;
-}
-
-static ssize_t music_right_gain_show(struct class* class, struct class_attribute* attr, char* buf)
-{
-    return sprintf(buf, "%d\n", music_right_gain);	
-}
-
-static ssize_t music_right_gain_store(struct class* class, struct class_attribute* attr,
-   const char* buf, size_t count )
-{
- 	int val;
-  	if(buf[0])
-  		val=simple_strtol(buf, NULL, 16);
-	
-  	if(val < 0) val = 0;
-  	if(val > 256) val = 256;
-
-  	music_right_gain = val;
-  	printk("music_right_gain set to 0x%x\n", music_right_gain);
-  	return count;
-}
 
 static struct class_attribute amaudio_attrs[]={
   __ATTR(enable_direct_audio,  S_IRUGO | S_IWUSR, show_direct_flag, store_direct_flag),
@@ -2054,14 +1890,8 @@ static struct class_attribute amaudio_attrs[]={
   __ATTR(audio_channels_mask, S_IRUGO | S_IWUSR, show_audio_channels_mask, store_audio_channels_mask),
   __ATTR(enable_resample, S_IRUGO | S_IWUSR, show_enable_resample, store_enable_resample),
   __ATTR(resample_type, S_IRUGO | S_IWUSR, show_resample_type, store_resample_type),
-  __ATTR(resample_delta, S_IRUGO | S_IWUSR, show_resample_delta, store_resample_delta),
   __ATTR(dac_mute_const, S_IRUGO | S_IWUSR, dac_mute_const_show, dac_mute_const_store),
   __ATTR_RO(output_enable),
-  __ATTR(record_type, S_IRUGO | S_IWUSR, record_type_show, record_type_store),
-  __ATTR(direct_left_gain, S_IRUGO | S_IWUSR, direct_left_gain_show, direct_left_gain_store),
-  __ATTR(direct_right_gain, S_IRUGO | S_IWUSR, direct_right_gain_show, direct_right_gain_store),
-  __ATTR(music_left_gain, S_IRUGO | S_IWUSR, music_left_gain_show, music_left_gain_store),
-  __ATTR(music_right_gain, S_IRUGO | S_IWUSR, music_right_gain_show, music_right_gain_store),
   __ATTR_NULL
 };
 

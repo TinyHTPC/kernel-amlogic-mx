@@ -1,20 +1,12 @@
 # AML Platform Support
-snd-soc-aml-mixer-objs := aml_mixer.o
 snd-soc-aml-pcm-objs := aml_pcm.o
-snd-soc-aml-platform-pcm2bt-objs := aml_platform_pcm2bt.o
 snd-soc-aml-dai-objs := aml_dai.o
 snd-soc-aml-hw-objs  := aml_audio_hw.o
-snd-soc-aml-hw-pcm2bt-objs  := aml_audio_hw_pcm2bt.o
-snd-soc-aml-platform-objs := aml_platform.o
 
-obj-$(CONFIG_SND_AML_SOC) += snd-soc-aml-mixer.o
 obj-$(CONFIG_SND_AML_SOC) += snd-soc-aml-pcm.o
 obj-$(CONFIG_SND_AML_SOC) += snd-soc-aml-dai.o
 obj-$(CONFIG_SND_AML_SOC) += snd-soc-aml-hw.o
 obj-$(CONFIG_SND_AML_SOC) += aml_notify.o
-obj-$(CONFIG_SND_AML_SOC) += snd-soc-aml-platform.o
-obj-$(CONFIG_SND_AML_SOC) += snd-soc-aml-platform-pcm2bt.o
-obj-$(CONFIG_SND_AML_SOC) += snd-soc-aml-hw-pcm2bt.o
 
 #AML M1 Machine support
 
@@ -56,10 +48,6 @@ obj-$(CONFIG_SND_AML_M3) += snd-soc-aml-codec.o
 #AML M6 Machine support
 snd-soc-aml-m6-rt5631-objs := aml_m6_rt5631.o
 obj-$(CONFIG_SND_AML_M6_RT5631) += snd-soc-aml-m6-rt5631.o
-
-#AML M6 Machine support
-snd-soc-aml-m6-rt5616-objs := aml_m6_rt5616.o
-obj-$(CONFIG_SND_AML_M6_RT5616) += snd-soc-aml-m6-rt5616.o
 
 #AML M6 Machine support
 snd-soc-aml-m6-rt3261-objs := aml_m6_rt3261.o

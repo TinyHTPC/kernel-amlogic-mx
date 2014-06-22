@@ -37,14 +37,9 @@ config SND_AML_M3
 	depends on ARCH_MESON3
 
 config SND_AML_M6_RT5631
-	tristate "M6 evaluation board with RT5631"
+	tristate "M6 evaluation board with RT56331"
 	depends on SND_AML_SOC
 	select SND_SOC_RT5631 if SND_AML_M6_RT5631
-
-config SND_AML_M6_RT5616
-	tristate "M6 evaluation board with RT5616"
-	depends on SND_AML_SOC
-	select SND_SOC_RT5616 if SND_AML_M6_RT5616
 
 config SND_AML_M6_RT3261
 	tristate "M6 evaluation board with RT3261"
@@ -55,11 +50,7 @@ config SND_AML_M6_WM8960
 	tristate "M6 evaluation board with WM8960"
 	depends on SND_AML_SOC
 	select SND_SOC_WM8960 if SND_AML_M6_WM8960
-config SND_AML_M6_PCM2BT
-	tristate "M6 evaluation board with PCM2BT"
-	depends on SND_AML_SOC
-	select SND_SOC_PCM2BT
-	
+
 config SND_AML_M_DUMMY_CODEC
     tristate "AML M series board with DUMMY_CODEC"
     depends on SND_AML_SOC

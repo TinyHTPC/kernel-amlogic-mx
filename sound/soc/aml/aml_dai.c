@@ -19,7 +19,9 @@
 static aml_dai_info_t dai_info[3] = {{0}};
 //#define AML_DAI_DEBUG
 
-#define AML_DAI_PCM_SUPPORT
+//#if defined(CONFIG_ARCH_MESON3) || defined(CONFIG_ARCH_MESON6)
+//#define AML_DAI_PCM_SUPPORT
+//#endif
 
 static int aml_dai_i2s_startup(struct snd_pcm_substream *substream,
 					struct snd_soc_dai *dai)
@@ -154,7 +156,7 @@ static int aml_dai_set_pcm_fmt(struct snd_soc_dai *dai,
 }
 
 static int aml_dai_set_pcm_sysclk(struct snd_soc_dai *dai,
-					int clk_id, unsigned int freq, int dir)
+					int clk_id, unsigned int freq, int dir);
 {
 #ifdef AML_DAI_DEBUG
 	printk("***Entered %s:%s\n", __FILE__,__func__);
@@ -235,12 +237,12 @@ struct snd_soc_dai_driver aml_dai[] = {
 		.resume = aml_dai_pcm_resume,
 		.playback = {
 			.channels_min = 1,
-			.channels_max = 1,
+			.channels_max = 8,
 			.rates = AML_DAI_PCM_RATES,
 			.formats = AML_DAI_PCM_FORMATS,},
 		.capture = {
 			.channels_min = 1,
-			.channels_max = 1,
+			.channels_max = 8,
 			.rates = AML_DAI_PCM_RATES,
 			.formats = AML_DAI_PCM_FORMATS,},
 		.ops = &aml_dai_pcm_ops,

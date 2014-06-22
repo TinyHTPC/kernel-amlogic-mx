@@ -33,7 +33,6 @@ typedef struct audio_mixer_control {
     int input_volume;
     int output_volume;
 } audio_mixer_control_t;
-extern audio_mixer_control_t audio_mixer_control;
 
 typedef struct audio_tone_control {
     unsigned short * tone_source;
@@ -64,13 +63,11 @@ struct aml_runtime_data {
 	dma_addr_t dma_buffer;		/* physical address of dma buffer */
 	dma_addr_t dma_buffer_end;	/* first address beyond DMA buffer */
 
-	struct snd_pcm_substream *substream;
+	struct snd_pcm *pcm;
 	audio_stream_t s;	
 	struct timer_list timer;	// timeer for playback and capture
-    struct hrtimer hrtimer;
 };
 
 extern struct snd_soc_platform_driver aml_soc_platform;
-extern struct aml_audio_interface aml_i2s_interface;
 
 #endif

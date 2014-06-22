@@ -33,7 +33,7 @@
 #include "aml_dai.h"
 #include "aml_pcm.h"
 #include "aml_audio_hw.h"
-#include "aml_alsa_common.h"
+
 
 static struct dummy_codec_platform_data *dummy_codec_snd_pdata = NULL;
 
@@ -51,12 +51,6 @@ static void dummy_codec_dev_uninit(void)
     }
 }
 
-static void dummy_codec_mute_speaker(int mute)
-{
-	if (dummy_codec_snd_pdata->mute_spk){
-		dummy_codec_snd_pdata->mute_spk(mute);
-	}
-}
 static int dummy_codec_hw_params(struct snd_pcm_substream *substream,
     struct snd_pcm_hw_params *params)
 {
@@ -110,24 +104,6 @@ static struct snd_soc_ops dummy_codec_soc_ops = {
 static int dummy_codec_set_bias_level(struct snd_soc_card *card,
 			      enum snd_soc_bias_level level)
 {
-    int ret = 0;
-
-    switch (level) {
-    case SND_SOC_BIAS_ON:
-        break;
-    case SND_SOC_BIAS_PREPARE:
-    	dummy_codec_mute_speaker(0);
-        break;
-
-    case SND_SOC_BIAS_OFF:
-    	break;
-    case SND_SOC_BIAS_STANDBY:
-        dummy_codec_mute_speaker(1);
-        break;
-    default:
-        return ret;
-    }
-
     return 0;
 }
 
@@ -147,17 +123,6 @@ static struct snd_soc_dai_link dummy_codec_dai_link[] = {
         .codec_name = "dummy_codec.0",
         .ops = &dummy_codec_soc_ops,
     },
-#ifdef CONFIG_SND_SOC_PCM2BT
-    {
-        .name = "BT Voice",
-        .stream_name = "Voice PCM",
-        .cpu_dai_name = "aml-dai1",
-        .codec_dai_name = "pcm2bt-pcm",
-        .platform_name = "aml-audio.0",
-        .codec_name = "pcm2bt.0",
-        //.ops = &voice_soc_ops,
-    },
-#endif
 };
 
 static struct snd_soc_card snd_soc_dummy_codec = {
@@ -193,9 +158,7 @@ static int dummy_codec_audio_probe(struct platform_device *pdev)
         printk(KERN_ERR "ASoC: Platform device allocation failed\n");
         goto err_device_add;
     }
-	
-   if (0 == aml_alsa_create_ctrl(snd_soc_dummy_codec.snd_card,&audio_mixer_control))
-        printk("dummy codec control ALSA component registered!\n");
+
 
     dummy_codec_dev_init();
 

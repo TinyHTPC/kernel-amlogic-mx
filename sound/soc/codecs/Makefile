@@ -24,7 +24,6 @@ snd-soc-max98095-objs := max98095.o
 snd-soc-max9850-objs := max9850.o
 snd-soc-pcm3008-objs := pcm3008.o
 snd-soc-rt5631-objs := rt5631.o
-snd-soc-rt5616-objs := rt5616.o
 snd-soc-sgtl5000-objs := sgtl5000.o
 snd-soc-alc5623-objs := alc5623.o
 snd-soc-sn95031-objs := sn95031.o
@@ -87,7 +86,7 @@ snd-soc-sta380x-objs := sta380x.o
 snd-soc-tas5711-objs := tas5711.o
 snd-soc-tas5707-objs := tas5707.o
 snd-soc-dummy_codec-objs := dummy_codec.o
-snd-soc-pcm2bt-objs  := pcm2bt.o
+
 # Amp
 snd-soc-lm4857-objs := lm4857.o
 snd-soc-max9877-objs := max9877.o
@@ -123,7 +122,6 @@ obj-$(CONFIG_SND_SOC_MAX98095)	+= snd-soc-max98095.o
 obj-$(CONFIG_SND_SOC_MAX9850)	+= snd-soc-max9850.o
 obj-$(CONFIG_SND_SOC_PCM3008)	+= snd-soc-pcm3008.o
 obj-$(CONFIG_SND_SOC_RT5631)	+= snd-soc-rt5631.o
-obj-$(CONFIG_SND_SOC_RT5616)    += snd-soc-rt5616.o
 obj-$(CONFIG_SND_SOC_RT3261)	+= rt3261/
 obj-$(CONFIG_SND_SOC_SGTL5000)  += snd-soc-sgtl5000.o
 obj-$(CONFIG_SND_SOC_SN95031)	+=snd-soc-sn95031.o
@@ -185,7 +183,7 @@ obj-$(CONFIG_SND_SOC_DUMMY_CODEC)   += snd-soc-dummy_codec.o
 obj-$(CONFIG_SND_SOC_STA380)    += snd-soc-sta380x.o
 obj-$(CONFIG_SND_SOC_TAS5711)   += snd-soc-tas5711.o
 obj-$(CONFIG_SND_SOC_TAS5707)   += snd-soc-tas5707.o
-obj-$(CONFIG_SND_SOC_PCM2BT)   += snd-soc-pcm2bt.o
+
 # Amp
 obj-$(CONFIG_SND_SOC_LM4857)	+= snd-soc-lm4857.o
 obj-$(CONFIG_SND_SOC_MAX9877)	+= snd-soc-max9877.o

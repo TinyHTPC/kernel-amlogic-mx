@@ -56,7 +56,6 @@ struct rt5631_private_data {
 
 static struct rt5631_platform_data *rt5631_snd_pdata = NULL;
 static struct rt5631_private_data* rt5631_snd_priv = NULL;
-static int hp_detect_init(struct snd_soc_codec *codec);
 
 static void rt5631_dev_init(void)
 {
@@ -434,8 +433,6 @@ static int rt5631_codec_init(struct snd_soc_pcm_runtime *rtd)
 
     snd_soc_dapm_sync(dapm);
 
-    hp_detect_init(codec);
-#if 0
 #if HP_DET
     ret = snd_soc_jack_new(codec, "hp switch", SND_JACK_HEADPHONE, &rt5631_snd_priv->jack);
     if (ret) {
@@ -456,47 +453,7 @@ static int rt5631_codec_init(struct snd_soc_pcm_runtime *rtd)
     mutex_init(&rt5631_snd_priv->lock);
 #endif
 
-#endif
     return 0;
-}
-
-static int hp_detect_init(struct snd_soc_codec *codec)
-{
-    int ret = 0;
-
-#if HP_DET
-    rt5631_snd_priv->sdev.name = "h2w";//for report headphone to android
-    ret = switch_dev_register(&rt5631_snd_priv->sdev);
-    if (ret < 0){
-        printk(KERN_ERR "ASoC: register switch dev failed\n");
-    }
-
-    rt5631_dev_init();
-
-    ret = snd_soc_jack_new(codec, "hp switch", SND_JACK_HEADPHONE, &rt5631_snd_priv->jack);
-    if (ret) {
-        printk(KERN_WARNING "Failed to alloc resource for hp switch\n");
-    } else {
-        ret = snd_soc_jack_add_pins(&rt5631_snd_priv->jack, ARRAY_SIZE(jack_pins), jack_pins);
-        if (ret) {
-            printk(KERN_WARNING "Failed to setup hp pins\n");
-        }
-    }
-    rt5631_snd_priv->data= (void*)codec;
-
-    init_timer(&rt5631_snd_priv->timer);
-    rt5631_snd_priv->timer.function = rt5631_timer_func;
-    rt5631_snd_priv->timer.data = (unsigned long)rt5631_snd_priv;
-
-    INIT_WORK(&rt5631_snd_priv->work, rt5631_work_func);
-    mutex_init(&rt5631_snd_priv->lock);
-    mutex_lock(&rt5631_snd_priv->lock);
-    if (!rt5631_snd_priv->timer_en) {
-        rt5631_start_timer(msecs_to_jiffies(100));
-    }
-    mutex_unlock(&rt5631_snd_priv->lock);
-    
-#endif
 }
 
 static int hdmi_hw_params(struct snd_pcm_substream *substream,
@@ -628,7 +585,7 @@ static int rt5631_audio_probe(struct platform_device *pdev)
 
     rt5631_snd_priv->bias_level = SND_SOC_BIAS_OFF;
     rt5631_snd_priv->clock_en = 0;
-#if 0
+
 #if HP_DET
     rt5631_snd_priv->sdev.name = "h2w";//for report headphone to android
     ret = switch_dev_register(&rt5631_snd_priv->sdev);
@@ -638,7 +595,6 @@ static int rt5631_audio_probe(struct platform_device *pdev)
     }
 #endif
     rt5631_dev_init();
-#endif
 
     return ret;
 
