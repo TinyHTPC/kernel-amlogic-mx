@@ -156,7 +156,6 @@ typedef enum _NDIS_802_11_AUTHENTICATION_MODE
     Ndis802_11AuthModeWPA,
     Ndis802_11AuthModeWPAPSK,
     Ndis802_11AuthModeWPANone,
-    Ndis802_11AuthModeWAPI,
     Ndis802_11AuthModeMax               // Not a real mode, defined as upper bound
 } NDIS_802_11_AUTHENTICATION_MODE, *PNDIS_802_11_AUTHENTICATION_MODE;
 
@@ -173,8 +172,7 @@ typedef enum _NDIS_802_11_WEP_STATUS
     Ndis802_11Encryption2Enabled,
     Ndis802_11Encryption2KeyAbsent,
     Ndis802_11Encryption3Enabled,
-    Ndis802_11Encryption3KeyAbsent,
-    Ndis802_11_EncrypteionWAPI
+    Ndis802_11Encryption3KeyAbsent
 } NDIS_802_11_WEP_STATUS, *PNDIS_802_11_WEP_STATUS,
   NDIS_802_11_ENCRYPTION_STATUS, *PNDIS_802_11_ENCRYPTION_STATUS;
 
@@ -577,20 +575,6 @@ typedef struct _WLAN_PHY_INFO
   	u8  	Reserved_0;
 }WLAN_PHY_INFO,*PWLAN_PHY_INFO;
 
-typedef struct _WLAN_BCN_INFO
-{
-	/* these infor get from rtw_get_encrypt_info when
-	 * 	 * translate scan to UI */
-	u8 encryp_protocol;//ENCRYP_PROTOCOL_E: OPEN/WEP/WPA/WPA2/WAPI
-	int group_cipher; //WPA/WPA2 group cipher
-	int pairwise_cipher;////WPA/WPA2/WEP pairwise cipher
-	int is_8021x;
-
-	/* bwmode 20/40 and ch_offset UP/LOW */
-	unsigned short 	ht_cap_info;
-	unsigned char	ht_info_infos_0;
-}WLAN_BCN_INFO,*PWLAN_BCN_INFO;
-
 /* temporally add #pragma pack for structure alignment issue of
 *   WLAN_BSSID_EX and get_WLAN_BSSID_EX_sz()
 */
@@ -624,7 +608,6 @@ WLAN_BSSID_EX, *PWLAN_BSSID_EX;
 
 __inline  static uint get_WLAN_BSSID_EX_sz(WLAN_BSSID_EX *bss)
 {
-#if 0
 	uint t_len;
 	
 	t_len = sizeof (ULONG) 
@@ -643,9 +626,7 @@ __inline  static uint get_WLAN_BSSID_EX_sz(WLAN_BSSID_EX *bss)
 		+ sizeof (ULONG)
 		+ bss->IELength;	
 	return t_len;
-#else
-	return (sizeof(WLAN_BSSID_EX) -MAX_IE_SZ + bss->IELength);
-#endif
+	
 }
 
 struct	wlan_network {
@@ -656,7 +637,6 @@ struct	wlan_network {
 	int	aid;			//will only be valid when a BSS is joinned.
 	int	join_res;
 	WLAN_BSSID_EX	network; //must be the last item
-	WLAN_BCN_INFO	BcnInfo;
 #ifdef PLATFORM_WINDOWS	
 	unsigned char  iebuf[MAX_IE_SZ];
 #endif

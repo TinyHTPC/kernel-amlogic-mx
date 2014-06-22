@@ -14,6 +14,8 @@ make modules_install LOCALVERSION=-MX INSTALL_MOD_PATH=output
 ### Copy Modules to output folder ###
 cp -rfv output/lib/modules/* output/
 rm -rfv output/lib
+rm -rfv output/3.0.*/build
+rm -rfv output/3.0.*/source
 ### Build uImage ###
 make uImage -j4 LOCALVERSION=-MX
 ### Copy uImage to output folder ###

@@ -1528,7 +1528,7 @@ static int recvbuf2recvframe(_adapter *padapter, _pkt *pskb)
 
 		pattrib = &precvframe->u.hdr.attrib;
 	
-		if ((pattrib->crc_err) || (pattrib->icv_err))
+		if ((pattrib->crc_err) )//|| (pattrib->icv_err))
 		{
 			DBG_8192C("%s: RX Warning! crc_err=%d icv_err=%d, skip!\n", __FUNCTION__, pattrib->crc_err, pattrib->icv_err);
 			rtw_free_recvframe(precvframe, pfree_recv_queue);
@@ -1654,6 +1654,73 @@ static int recvbuf2recvframe(_adapter *padapter, _pkt *pskb)
 			{
 				if (pattrib->physt) 
 					update_recvframe_phyinfo_88e(precvframe, (struct phy_stat*)pphy_status);
+//==============================================================================
+#if 1
+				if ((pattrib->crc_err==0) && (pattrib->icv_err==1))
+				{								
+				
+					u8	*wlanhdr;				
+					u8 i;
+					u8 *sa,*da,*bssid;
+					u32 type;
+					
+					wlanhdr = get_recvframe_data(precvframe);
+					
+			DBG_8192C("%s: RX Warning! crc_err=%d icv_err=%d, skip!\n", __FUNCTION__, pattrib->crc_err, pattrib->icv_err);
+	                        /*
+					pkt_info.bPacketMatchBSSID = ((!IsFrameTypeCtrl(wlanhdr)) &&					
+						_rtw_memcmp(get_hdr_bssid(wlanhdr), get_bssid(&padapter->mlmepriv), ETH_ALEN));
+
+					pkt_info.bPacketToSelf = pkt_info.bPacketMatchBSSID && (_rtw_memcmp(get_da(wlanhdr), myid(&padapter->eeprompriv), ETH_ALEN));
+
+					pkt_info.bPacketBeacon = pkt_info.bPacketMatchBSSID && (GetFrameSubType(wlanhdr) == WIFI_BEACON);
+
+					if(pkt_info.bPacketBeacon){
+						if(check_fwstate(&padapter->mlmepriv, WIFI_STATION_STATE) == _TRUE){				
+							sa = padapter->mlmepriv.cur_network.network.MacAddress;
+							#if 0
+							{					
+								printk("==> rx beacon from AP[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+									sa[0],sa[1],sa[2],sa[3],sa[4],sa[5]);					
+							}
+							#endif
+						}
+						
+					}
+					else{
+						sa = get_sa(wlanhdr);
+						printk("==> sa[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+									sa[0],sa[1],sa[2],sa[3],sa[4],sa[5]);					
+						
+					}	
+					
+					sa = get_sa(wlanhdr);
+					printk("==> sa[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+									sa[0],sa[1],sa[2],sa[3],sa[4],sa[5]);		
+					da =get_da(wlanhdr);
+					printk("==> da[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+									da[0],da[1],da[2],da[3],da[4],da[5]);	
+
+					//bssid = get_bssid(&padapter->mlmepriv);
+					//printk("==> bssid[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+					//				bssid[0],bssid[1],bssid[2],bssid[3],bssid[4],bssid[5]);	
+					type = GetFrameSubType(wlanhdr);
+					printk("==>frame type:0x%08x\n",type);
+					*/
+					printk("\n===========================\n [");
+					for(i=0;i<26;i++)
+					{
+						printk(" 0x%02x ",wlanhdr[i]);
+						if(i%16==0)
+							printk("\n");
+					}
+					printk("] \n===========================\n");
+							
+					
+				}
+#endif
+//==============================================================================
+			
 				if(rtw_recv_entry(precvframe) != _SUCCESS)
 				{
 					RT_TRACE(_module_rtl871x_recv_c_,_drv_err_,

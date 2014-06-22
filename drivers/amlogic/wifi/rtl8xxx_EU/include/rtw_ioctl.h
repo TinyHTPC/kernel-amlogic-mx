@@ -24,7 +24,6 @@
 #include <osdep_service.h>
 #include <drv_types.h>
 
-
 #ifndef OID_802_11_CAPABILITY
 	#define OID_802_11_CAPABILITY                   0x0d010122
 #endif
@@ -243,8 +242,11 @@ void Set_802_3_MULTICAST_LIST(ADAPTER *pAdapter, UCHAR *MCListbuf, ULONG MCListl
 
 #endif// end of PLATFORM_WINDOWS
 
-#if defined(PLATFORM_LINUX) && defined(CONFIG_WIRELESS_EXT)
+
+#ifdef PLATFORM_LINUX
+
 extern struct iw_handler_def  rtw_handlers_def;
+
 #endif
 
 extern	NDIS_STATUS drv_query_info(

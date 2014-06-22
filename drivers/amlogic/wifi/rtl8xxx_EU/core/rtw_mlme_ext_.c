@@ -1090,8 +1090,8 @@ unsigned int OnAuth(_adapter *padapter, union recv_frame *precv_frame)
 	sa = GetAddr2Ptr(pframe);
 	
 	auth_mode = psecuritypriv->dot11AuthAlgrthm;
-	seq = cpu_to_le16(*(unsigned short *)((unsigned char *)pframe + WLAN_HDR_A3_LEN + 2));
-	algorithm = cpu_to_le16(*(unsigned short *)((unsigned char *)pframe + WLAN_HDR_A3_LEN));
+	seq = cpu_to_le16(*(u16*)((SIZE_PTR)pframe + WLAN_HDR_A3_LEN + 2));
+	algorithm = cpu_to_le16(*(u16*)((SIZE_PTR)pframe + WLAN_HDR_A3_LEN));
 
 	if (GetPrivacy(pframe))
 	{	
@@ -9975,8 +9975,6 @@ u8 disconnect_hdl(_adapter *padapter, unsigned char *pbuf)
 	flush_all_cam_entry(padapter);
 		
 	_cancel_timer_ex(&pmlmeext->link_timer);
-
-	rtw_free_uc_swdec_pending_queue(padapter);
 	
 	return 	H2C_SUCCESS;
 }
@@ -11398,11 +11396,10 @@ void free_mlme_ap_info(_adapter *padapter)
 
 	//free bc/mc sta_info
 	psta = rtw_get_bcmc_stainfo(padapter);	
-	if(psta != NULL) {
-		_enter_critical_bh(&(pstapriv->sta_hash_lock), &irqL);
-		rtw_free_stainfo(padapter, psta);
-		_exit_critical_bh(&(pstapriv->sta_hash_lock), &irqL);
-	}	
+	_enter_critical_bh(&(pstapriv->sta_hash_lock), &irqL);		
+	rtw_free_stainfo(padapter, psta);
+	_exit_critical_bh(&(pstapriv->sta_hash_lock), &irqL);
+	
 
 	_rtw_spinlock_free(&pmlmepriv->bcn_update_lock);
 	
@@ -12947,7 +12944,7 @@ int rtw_check_beacon_data(_adapter *padapter, u8 *pbuf,  int len)
 			return _FAIL;
 		}	
 	}	
-		
+	psta->state |= WIFI_AP_STATE;		//Aries, add,fix bug of flush_cam_entry at STOP AP mode , 0724 	
 	rtw_indicate_connect( padapter);
 
 	pmlmepriv->cur_network.join_res = _TRUE;//for check if already set beacon

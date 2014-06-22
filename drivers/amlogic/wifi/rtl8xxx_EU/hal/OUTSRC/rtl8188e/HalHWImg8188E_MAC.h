@@ -28,17 +28,8 @@
 *                           MAC_REG.TXT
 ******************************************************************************/
 
-HAL_STATUS
-ODM_ReadAndConfig_MAC_REG_8188E(
-	IN   PDM_ODM_T  pDM_Odm
-);
-
-/******************************************************************************
-*                           MAC_REG_ICUT.TXT
-******************************************************************************/
-
 void
-ODM_ReadAndConfig_MAC_REG_ICUT_8188E( // TC: Test Chip, MP: MP Chip
+ODM_ReadAndConfig_MAC_REG_8188E(
 	IN   PDM_ODM_T  pDM_Odm
 );
 

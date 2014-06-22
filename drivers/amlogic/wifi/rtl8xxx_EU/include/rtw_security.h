@@ -32,12 +32,9 @@
 #define _TKIP_WTMIC_		0x3
 #define _AES_				0x4
 #define _WEP104_			0x5
-#define _WEP_WPA_MIXED_	0x07  // WEP + WPA
-#define _SMS4_				0x06
-#ifdef CONFIG_IEEE80211W
-#define _BIP_				0x8 
-#endif //CONFIG_IEEE80211W
-#define is_wep_enc(alg) (((alg) == _WEP40_) || ((alg) == _WEP104_))
+#define _WEP_WPA_MIXED_	0x06  // WEP + WPA
+#define _SMS4_				0x07
+
 
 #define _WPA_IE_ID_	0xdd
 #define _WPA2_IE_ID_	0x30
@@ -45,16 +42,6 @@
 #define SHA256_MAC_LEN 32
 #define AES_BLOCK_SIZE 16
 #define AES_PRIV_SIZE (4 * 44)
-
-typedef enum {
-	ENCRYP_PROTOCOL_OPENSYS,   //open system
-	ENCRYP_PROTOCOL_WEP,       //WEP
-	ENCRYP_PROTOCOL_WPA,       //WPA
-	ENCRYP_PROTOCOL_WPA2,      //WPA2
-	ENCRYP_PROTOCOL_WAPI,      //WAPI: Not support in this version
-	ENCRYP_PROTOCOL_MAX
-}ENCRYP_PROTOCOL_E;
-
 
 #ifndef Ndis802_11AuthModeWPA2
 #define Ndis802_11AuthModeWPA2 (Ndis802_11AuthModeWPANone + 1)
@@ -124,7 +111,6 @@ struct security_priv
 	u32	  dot11PrivacyKeyIndex;	// this is only valid for legendary wep, 0~3 for key id. (tx key index)
 	union Keytype dot11DefKey[4];			// this is only valid for def. key	
 	u32 	dot11DefKeylen[4];
-	u8 	key_mask; /* use to restore wep key after hal_init */
 
 	u32 dot118021XGrpPrivacy;	// This specify the privacy algthm. used for Grp key 
 	u32	dot118021XGrpKeyid;		// key id used for Grp Key ( tx key index)
@@ -133,12 +119,7 @@ struct security_priv
 	union Keytype	dot118021XGrprxmickey[4];
 	union pn48		dot11Grptxpn;			// PN48 used for Grp Key xmit.
 	union pn48		dot11Grprxpn;			// PN48 used for Grp Key recv.
-#ifdef CONFIG_IEEE80211W
-	u32	dot11wBIPKeyid;						// key id used for BIP Key ( tx key index)
-	union Keytype	dot11wBIPKey[6];		// BIP Key, for index4 and index5
-	union pn48		dot11wBIPtxpn;			// PN48 used for Grp Key xmit.
-	union pn48		dot11wBIPrxpn;			// PN48 used for Grp Key recv.
-#endif //CONFIG_IEEE80211W
+
 #ifdef CONFIG_AP_MODE
 	//extend security capabilities for AP_MODE 
 	unsigned int dot8021xalg;//0:disable, 1:psk, 2:802.1x
@@ -149,14 +130,12 @@ struct security_priv
 	unsigned int wpa2_pairwise_cipher;	
 #endif
 
+	u8 wps_phase;//for wps
 	u8 wps_ie[MAX_WPS_IE_LEN];//added in assoc req
 	int wps_ie_len;
 	
 	
 	u8	binstallGrpkey;
-#ifdef CONFIG_IEEE80211W
-	u8	binstallBIPkey;
-#endif //CONFIG_IEEE80211W
 	u8	busetkipkey;
 	//_timer tkip_timer;
 	u8	bcheck_grpkey;
@@ -204,7 +183,6 @@ struct security_priv
 	//u32				PMKIDCount;						// Added by Annie, 2006-10-13.
 	//u8				szCapability[256];				// For WPA2-PSK using zero-config, by Annie, 2005-09-20.
 
-	u8 bWepDefaultKeyIdxSet;
 };
 
 struct sha256_state {
@@ -228,9 +206,6 @@ do{\
 			else\
 				encry_algo =(u8) psta->dot118021XPrivacy;\
 			break;\
-	     case dot11AuthAlgrthm_WAPI:\
-		     encry_algo = (u8)psecuritypriv->dot11PrivacyAlgrthm;\
-		     break;\
 	}\
 }while(0)
 
@@ -251,10 +226,6 @@ do{\
 		case _AES_:\
 			iv_len = 8;\
 			icv_len = 8;\
-			break;\
-		case _SMS4_:\
-			iv_len = 18;\
-			icv_len = 16;\
 			break;\
 		default:\
 			iv_len = 0;\
@@ -408,9 +379,7 @@ static const unsigned long K[64] = {
 #ifndef MIN
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 #endif
-#ifdef CONFIG_IEEE80211W
-int omac1_aes_128(u8 *key, u8 *data, size_t data_len, u8 *mac);
-#endif //CONFIG_IEEE80211W
+
 void rtw_secmicsetkey(struct mic_data *pmicdata, u8 * key );
 void rtw_secmicappendbyte(struct mic_data *pmicdata, u8 b );
 void rtw_secmicappend(struct mic_data *pmicdata, u8 * src, u32 nBytes );
@@ -431,9 +400,7 @@ void rtw_wep_encrypt(_adapter *padapter, u8  *pxmitframe);
 u32 rtw_aes_decrypt(_adapter *padapter, u8  *precvframe);
 u32 rtw_tkip_decrypt(_adapter *padapter, u8  *precvframe);
 void rtw_wep_decrypt(_adapter *padapter, u8  *precvframe);
-#ifdef CONFIG_IEEE80211W
-u32	rtw_BIP_verify(_adapter *padapter, u8 *precvframe);
-#endif //CONFIG_IEEE80211W
+
 #ifdef CONFIG_TDLS
 void wpa_tdls_generate_tpk(_adapter *padapter, struct sta_info *psta);
 int wpa_tdls_ftie_mic(u8 *kck, u8 trans_seq, 
@@ -441,7 +408,7 @@ int wpa_tdls_ftie_mic(u8 *kck, u8 trans_seq,
 						u8 *mic);
 int tdls_verify_mic(u8 *kck, u8 trans_seq, 
 						u8 *lnkid, u8 *rsnie, u8 *timeoutie, u8 *ftie);
-#endif //CONFIG_TDLS
+#endif
 
 #ifdef PLATFORM_WINDOWS
 void rtw_use_tkipkey_handler (
@@ -458,9 +425,5 @@ void rtw_use_tkipkey_handler(void* FunctionContext);
 #ifdef PLATFORM_FREEBSD
 void rtw_use_tkipkey_handler(void* FunctionContext);
 #endif //PLATFORM_FREEBSD
-
-void rtw_sec_restore_wep_key(_adapter *adapter);
-u8 rtw_handle_tkip_countermeasure(_adapter* adapter, const char *caller);
-
 #endif	//__RTL871X_SECURITY_H_
 

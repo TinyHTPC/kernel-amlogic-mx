@@ -207,7 +207,7 @@ u8 rtl8192c_set_rssi_cmd(PADAPTER padapter, u8 *param);
 //u8 rtl8723a_set_rssi_cmd(PADAPTER padapter, u8 *param);
 u8 rtl8192c_set_raid_cmd(PADAPTER padapter, u32 mask, u8 arg);
 //u8 rtl8723a_set_raid_cmd(PADAPTER padapter, u32 mask, u8 arg);
-void rtl8192c_Add_RateATid(PADAPTER padapter, u32 bitmap, u8 arg, u8 rssi_level);
+void rtl8192c_Add_RateATid(PADAPTER padapter, u32 bitmap, u8 arg);
 //void rtl8723a_Add_RateATid(PADAPTER padapter, u32 bitmap, u8 arg);
 u8 rtl8192c_set_FwSelectSuspend_cmd(PADAPTER padapter, u8 bfwpoll, u16 period);
 //u8 rtl8723a_set_FwSelectSuspend_cmd(PADAPTER padapter, u8 bfwpoll, u16 period);
@@ -218,8 +218,6 @@ void rtl8192c_set_p2p_ps_offload_cmd(PADAPTER padapter, u8 p2p_ps_state);
 #endif //CONFIG_P2P
 
 void CheckFwRsvdPageContent(PADAPTER padapter);
-
-void rtl8723a_set_FwMediaStatus_cmd(PADAPTER padapter, u16 mstatus_rpt );
 
 #endif
 

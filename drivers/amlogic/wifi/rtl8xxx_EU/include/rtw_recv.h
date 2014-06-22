@@ -101,26 +101,6 @@ struct signal_stat {
 	u32	total_num;		//num of valid elements
 	u32	total_val;		//sum of valid elements	
 };
-/*
-#define MAX_PATH_NUM_92CS		2
-
-typedef struct _ODM_Phy_Status_Info_
-{	
-	u1Byte		RxPWDBAll;	
-	u1Byte		SignalQuality;	 // in 0-100 index. 
-	u1Byte		RxMIMOSignalQuality[MAX_PATH_NUM_92CS]; //EVM
-	u1Byte		RxMIMOSignalStrength[MAX_PATH_NUM_92CS];// in 0~100 index
-#if (DM_ODM_SUPPORT_TYPE &  (ODM_MP|ODM_CE))
-	s1Byte		RxPower; // in dBm Translate from PWdB
-	s1Byte		RecvSignalPower;// Real power in dBm for this packet, no beautification and aggregation. Keep this raw info to be used for the other procedures.
-	u1Byte		BTRxRSSIPercentage;	
-	u1Byte		SignalStrength; // in 0-100 index.
-	u1Byte		RxPwr[MAX_PATH_NUM_92CS];//per-path's pwdb
-#endif
-	u1Byte		RxSNR[MAX_PATH_NUM_92CS];//per-path's SNR	
-}ODM_PHY_INFO_T,*PODM_PHY_INFO_T;
-*/
-
 #define MAX_PATH_NUM_92CS		2
 struct phy_info //ODM_PHY_INFO_T
 {	
@@ -202,7 +182,7 @@ struct rx_pkt_attrib	{
 #define SN_EQUAL(a, b)	(a == b)
 //#define REORDER_WIN_SIZE	128
 //#define REORDER_ENTRY_NUM	128
-#define REORDER_WAIT_TIME	(50) // (ms)
+#define REORDER_WAIT_TIME	(30) // (ms)
 
 #define RECVBUFF_ALIGN_SZ 8
 
@@ -334,7 +314,7 @@ struct recv_priv
 	_queue	free_recv_buf_queue;
 	u32	free_recv_buf_queue_cnt;
 
-#if defined(CONFIG_SDIO_HCI) || defined(CONFIG_GSPI_HCI)
+#ifdef CONFIG_SDIO_HCI
 	_queue	recv_buf_pending_queue;
 #endif
 
@@ -354,8 +334,6 @@ struct recv_priv
 	u8 signal_qual;
 	u8 noise;
 	int RxSNRdB[2];
-	s8 RxRssi[2];
-	int FalseAlmCnt_all;
 
 #ifdef CONFIG_NEW_SIGNAL_STAT_PROCESS
 	_timer signal_stat_timer;
@@ -490,14 +468,6 @@ struct recv_frame_hdr
 
 	//for A-MPDU Rx reordering buffer control
 	struct recv_reorder_ctrl *preorder_ctrl;
-
-#ifdef CONFIG_WAPI_SUPPORT
-	u8 UserPriority;
-	u8 WapiTempPN[16];
-	u8 WapiSrcAddr[6];
-	u8 bWapiCheckPNInDecrypt;
-	u8 bIsWaiPacket;
-#endif
 
 };
 

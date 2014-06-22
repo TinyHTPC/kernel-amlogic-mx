@@ -36,8 +36,6 @@ Major Change History:
 #include <HalPwrSeqCmd.h>
 #ifdef CONFIG_SDIO_HCI
 #include <sdio_ops.h>
-#elif defined(CONFIG_GSPI_HCI)
-#include <gspi_ops.h>
 #endif
 
 //
@@ -112,10 +110,6 @@ u8 HalPwrSeqCmdParsing(
 					else
 #endif
 					{
-#ifdef CONFIG_GSPI_HCI
-						if (GET_PWR_CFG_BASE(PwrCfgCmd) == PWR_BASEADDR_SDIO)
-							offset = SPI_LOCAL_OFFSET | offset;
-#endif
 						// Read the value from system register
 						value = rtw_read8(padapter, offset);
 
@@ -132,10 +126,7 @@ u8 HalPwrSeqCmdParsing(
 
 					bPollingBit = _FALSE;
 					offset = GET_PWR_CFG_OFFSET(PwrCfgCmd);
-#ifdef CONFIG_GSPI_HCI
-					if (GET_PWR_CFG_BASE(PwrCfgCmd) == PWR_BASEADDR_SDIO)
-						offset = SPI_LOCAL_OFFSET | offset;
-#endif
+
 					do {
 #ifdef CONFIG_SDIO_HCI
 						if (GET_PWR_CFG_BASE(PwrCfgCmd) == PWR_BASEADDR_SDIO)

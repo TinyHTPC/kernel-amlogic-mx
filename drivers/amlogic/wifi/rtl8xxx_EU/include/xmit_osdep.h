@@ -43,11 +43,7 @@ struct pkt_file {
 #endif
 #endif
 
-#ifdef CONFIG_GSPI_HCI
-#define NR_XMITFRAME     64
-#else
 #define NR_XMITFRAME     128
-#endif
 
 #define ETH_ALEN	6
 
@@ -75,7 +71,6 @@ struct sta_xmit_priv;
 struct xmit_frame;
 struct xmit_buf;
 
-extern int _rtw_xmit_entry(_pkt *pkt, _nic_hdl pnetdev);
 extern int rtw_xmit_entry(_pkt *pkt, _nic_hdl pnetdev);
 
 #endif

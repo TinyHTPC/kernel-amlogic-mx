@@ -449,7 +449,7 @@ rtl8188e_PHY_SetBBReg(
 	if(BitMask!= bMaskDWord){//if not "double word" write
 		OriginalValue = rtw_read32(Adapter, RegAddr);
 		BitShift = phy_CalculateBitShift(BitMask);
-		Data = ((OriginalValue & (~BitMask)) | ((Data << BitShift) & BitMask));
+		Data = ((OriginalValue & (~BitMask)) | (Data << BitShift));
 	}
 
 	rtw_write32(Adapter, RegAddr, Data);
@@ -869,7 +869,7 @@ phy_ConfigMACWithHeaderFile(
 			rtw_IOL_append_WB_cmd(xmit_frame, ptrArray[i], (u8)ptrArray[i+1]);
 		}
 
-		return rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000,0);
+		return rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000);
 	}
 #else
 	for(i = 0 ;i < ArrayLength;i=i+2){ // Add by tynli for 2 column
@@ -926,7 +926,7 @@ s32 PHY_MACConfig8188E(PADAPTER Adapter)
 
 
 	// 2010.07.13 AMPDU aggregation number B
-	rtw_write8(Adapter, REG_MAX_AGGR_NUM, MAX_AGGR_NUM);
+	rtw_write16(Adapter, REG_MAX_AGGR_NUM, MAX_AGGR_NUM);
 	//rtw_write8(Adapter, REG_MAX_AGGR_NUM, 0x0B); 
 
 	return rtStatus;
@@ -1191,7 +1191,7 @@ phy_ConfigBBWithHeaderFile(
 				//RT_TRACE(COMP_INIT, DBG_TRACE, ("The Rtl819XPHY_REGArray_Table[0] is %lx Rtl819XPHY_REGArray[1] is %lx \n",Rtl819XPHY_REGArray_Table[i], Rtl819XPHY_REGArray_Table[i+1]));
 			}
 		
-			ret = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000,0);
+			ret = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000);
 		}
 		#else
 		for(i=0;i<PHY_REGArrayLen;i=i+2)
@@ -1244,7 +1244,7 @@ phy_ConfigBBWithHeaderFile(
 				//RT_TRACE(COMP_INIT, DBG_TRACE, ("The Rtl819XAGCTAB_Array_Table[0] is %lx Rtl819XPHY_REGArray[1] is %lx \n",Rtl819XAGCTAB_Array_Table[i], Rtl819XAGCTAB_Array_Table[i+1]));
 			}
 		
-			ret = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000,0);
+			ret = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000);
 		}
 		#else
 		for(i=0;i<AGCTAB_ArrayLen;i=i+2)
@@ -1273,112 +1273,109 @@ storePwrIndexDiffRateOffset(
 	)
 {
 	HAL_DATA_TYPE	*pHalData = GET_HAL_DATA(Adapter);
-	
+
 	if(RegAddr == rTxAGC_A_Rate18_06)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][0] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][0]-TxAGC_A_Rate18_06 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][0]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][0] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][0]));
 	}
 	if(RegAddr == rTxAGC_A_Rate54_24)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][1] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][1]-TxAGC_A_Rate54_24 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][1]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][1] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][1]));
 	}
 	if(RegAddr == rTxAGC_A_CCK1_Mcs32)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][6] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][6]-TxAGC_A_CCK1_Mcs32 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][6]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][6] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][6]));
 	}
 	if(RegAddr == rTxAGC_B_CCK11_A_CCK2_11 && BitMask == 0xffffff00)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][7] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][7]-TxAGC_B_CCK11_A_CCK2_11 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][7]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][7] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][7]));
 	}
 	if(RegAddr == rTxAGC_A_Mcs03_Mcs00)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][2] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][2]-TxAGC_A_Mcs03_Mcs00 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][2]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][2] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][2]));
 	}
 	if(RegAddr == rTxAGC_A_Mcs07_Mcs04)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][3] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][3]-TxAGC_A_Mcs07_Mcs04 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][3]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][3] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][3]));
 	}
 	if(RegAddr == rTxAGC_A_Mcs11_Mcs08)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][4] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][4]-TxAGC_A_Mcs11_Mcs08 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][4]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][4] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][4]));
 	}
 	if(RegAddr == rTxAGC_A_Mcs15_Mcs12)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][5] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][5]-TxAGC_A_Mcs15_Mcs12 = 0x%x\n", pHalData->pwrGroupCnt,pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][5]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][5] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][5]));
 		if(pHalData->rf_type== RF_1T1R)
 		{
-			//printk("pwrGroupCnt = %d\n", pHalData->pwrGroupCnt);
-			pHalData->pwrGroupCnt++;			
+			pHalData->pwrGroupCnt++;
+			//RT_TRACE(COMP_INIT, DBG_TRACE, ("pwrGroupCnt = %d\n", pHalData->pwrGroupCnt));
 		}
 	}
 	if(RegAddr == rTxAGC_B_Rate18_06)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][8] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][8]-TxAGC_B_Rate18_06 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][8]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][8] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][8]));
 	}
 	if(RegAddr == rTxAGC_B_Rate54_24)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][9] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][9]-TxAGC_B_Rate54_24 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][9]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][9] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][9]));
 	}
 	if(RegAddr == rTxAGC_B_CCK1_55_Mcs32)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][14] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][14]-TxAGC_B_CCK1_55_Mcs32 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][14]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][14] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][14]));
 	}
 	if(RegAddr == rTxAGC_B_CCK11_A_CCK2_11 && BitMask == 0x000000ff)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][15] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][15]-TxAGC_B_CCK11_A_CCK2_11 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][15]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][15] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][15]));
 	}
 	if(RegAddr == rTxAGC_B_Mcs03_Mcs00)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][10] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][10]-TxAGC_B_Mcs03_Mcs00 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][10]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][10] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][10]));
 	}
 	if(RegAddr == rTxAGC_B_Mcs07_Mcs04)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][11] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][11]-TxAGC_B_Mcs07_Mcs04 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][11]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][11] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][11]));
 	}
 	if(RegAddr == rTxAGC_B_Mcs11_Mcs08)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][12] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][12]-TxAGC_B_Mcs11_Mcs08 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][12]);
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][12] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][12]));
 	}
 	if(RegAddr == rTxAGC_B_Mcs15_Mcs12)
 	{
 		pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][13] = Data;
-		//printk("MCSTxPowerLevelOriginalOffset[%d][13]-TxAGC_B_Mcs15_Mcs12 = 0x%x\n", pHalData->pwrGroupCnt,
-		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][13]);
-		
+		//RT_TRACE(COMP_INIT, DBG_TRACE, ("MCSTxPowerLevelOriginalOffset[%d][13] = 0x%lx\n", pHalData->pwrGroupCnt,
+		//	pHalData->MCSTxPowerLevelOriginalOffset[pHalData->pwrGroupCnt][13]));
 		if(pHalData->rf_type != RF_1T1R)
-		{
-			//printk("pwrGroupCnt = %d\n", pHalData->pwrGroupCnt);	
 			pHalData->pwrGroupCnt++;
-		}
 	}
 }
 /*-----------------------------------------------------------------------------
@@ -1647,7 +1644,7 @@ PHY_BBConfig8188E(
 	HAL_DATA_TYPE	*pHalData = GET_HAL_DATA(Adapter);
 	u32	RegVal;
 	u8	TmpU1B=0;
-	u8	value8,CrystalCap;
+	u8	value8;
 
 	phy_InitBBRFRegisterDefinition(Adapter);
 
@@ -1669,11 +1666,23 @@ PHY_BBConfig8188E(
 #endif
 
 #if 0
+		// 2009/10/21 by SD1 Jong. Modified by tynli. Not in Documented in V8.1.
+	if(!IS_NORMAL_CHIP(pHalData->VersionID))
+	{
 #ifdef CONFIG_USB_HCI
-	//To Fix MAC loopback mode fail. Suggested by SD4 Johnny. 2010.03.23.
-	rtw_write8(Adapter, REG_LDOHCI12_CTRL, 0x0f);
-	rtw_write8(Adapter, 0x15, 0xe9);
+		rtw_write8(Adapter, REG_LDOHCI12_CTRL, 0x1f);
+#else
+		rtw_write8(Adapter, REG_LDOHCI12_CTRL, 0x1b);
 #endif
+	}
+	else
+	{
+#ifdef CONFIG_USB_HCI
+		//To Fix MAC loopback mode fail. Suggested by SD4 Johnny. 2010.03.23.
+		rtw_write8(Adapter, REG_LDOHCI12_CTRL, 0x0f);
+		rtw_write8(Adapter, 0x15, 0xe9);
+#endif
+	}
 
 	rtw_write8(Adapter, REG_AFE_XTAL_CTRL+1, 0x80);
 #endif
@@ -1697,10 +1706,6 @@ PHY_BBConfig8188E(
 	// Config BB and AGC
 	//
 	rtStatus = phy_BB8188E_Config_ParaFile(Adapter);
-	
-	// write 0x24[16:11] = 0x24[22:17] = CrystalCap
-	CrystalCap = pHalData->CrystalCap & 0x3F;
-	PHY_SetBBReg(Adapter, REG_AFE_XTAL_CTRL, 0x7ff800, (CrystalCap | (CrystalCap << 6)));
 
 	return rtStatus;
 	
@@ -1899,7 +1904,7 @@ rtl8188e_PHY_ConfigRFWithHeaderFile(
 						rtw_IOL_append_WD_cmd(xmit_frame, pPhyReg->rf3wireOffset, DataAndAddr);
 					}
 				}
-				rtStatus = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000,0);
+				rtStatus = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000);
 			}
 			#else
 			for(i = 0;i<RadioA_ArrayLen; i=i+2)
@@ -1966,7 +1971,7 @@ rtl8188e_PHY_ConfigRFWithHeaderFile(
 						rtw_IOL_append_WD_cmd(xmit_frame, pPhyReg->rf3wireOffset, DataAndAddr);
 					}
 				}
-				rtStatus = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000,0);
+				rtStatus = rtw_IOL_exec_cmds_sync(Adapter, xmit_frame, 1000);
 			}
 			#else
 			for(i = 0;i<RadioB_ArrayLen; i=i+2)
@@ -2549,12 +2554,11 @@ PHY_SetTxPowerLevel8188E(
 	u8	cckPowerLevel[MAX_TX_COUNT], ofdmPowerLevel[MAX_TX_COUNT];// [0]:RF-A, [1]:RF-B
 	u8	BW20PowerLevel[MAX_TX_COUNT], BW40PowerLevel[MAX_TX_COUNT];
 	u8	i=0;
-/*
+
 #if(MP_DRIVER == 1)
-	if (Adapter->registrypriv.mp_mode == 1)
 	return;
 #endif
-*/
+
 	//getTxPowerIndex(Adapter, channel, &cckPowerLevel[0], &ofdmPowerLevel[0]);
 	getTxPowerIndex88E(Adapter, channel, &cckPowerLevel[0], &ofdmPowerLevel[0],&BW20PowerLevel[0],&BW40PowerLevel[0]);
 
@@ -2933,7 +2937,8 @@ PHY_SetBWMode8188E(
 		//pHalData->SetBWModeInProgress= FALSE;
 		pHalData->CurrentChannelBW = tmpBW;
 	}
-	
+	ODM_CmnInfoUpdate(&pHalData->odmpriv,ODM_CMNINFO_BW, pHalData->CurrentChannelBW );
+	ODM_CmnInfoUpdate(&pHalData->odmpriv,ODM_CMNINFO_SEC_CHNL_OFFSET,pHalData->nCur40MhzPrimeSC );
 }
 
 
@@ -2942,11 +2947,6 @@ static void _PHY_SwChnl8192C(PADAPTER Adapter, u8 channel)
 	u8 eRFPath;
 	u32 param1, param2;
 	HAL_DATA_TYPE	*pHalData = GET_HAL_DATA(Adapter);
-
-	if ( Adapter->bNotifyChannelChange )
-	{
-		DBG_871X( "[%s] ch = %d\n", __FUNCTION__, channel );
-	}
 
 	//s1. pre common command - CmdID_SetTxPowerLevel
 	PHY_SetTxPowerLevel8188E(Adapter, channel);
@@ -2964,25 +2964,7 @@ static void _PHY_SwChnl8192C(PADAPTER Adapter, u8 channel)
 	//s3. post common command - CmdID_End, None
 
 }
-// <20130708, James> A workaround to eliminate the 2480MHz spur for 8188E I-Cut
-void 
-phy_SpurCalibration_8188E(
-	IN	PADAPTER			Adapter
-	)
-{
-	HAL_DATA_TYPE	*pHalData = GET_HAL_DATA(Adapter);
-	
-	//DbgPrint("===> phy_SpurCalibration_8188E  CurrentChannelBW = %d, CurrentChannel = %d\n", pHalData->CurrentChannelBW, pHalData->CurrentChannel);
-	if(pHalData->CurrentChannelBW == 0 && pHalData->CurrentChannel == 13){
-		PHY_SetBBReg(Adapter, rOFDM1_CFOTracking, BIT(28), 0x1); //enable CSI Mask
-		PHY_SetBBReg(Adapter, rOFDM1_csi_fix_mask, BIT(26)|BIT(25), 0x3); //Fix CSI Mask Tone
-	}
-	else{
-		PHY_SetBBReg(Adapter, rOFDM1_CFOTracking, BIT(28), 0x0); //disable CSI Mask
-		PHY_SetBBReg(Adapter, rOFDM1_csi_fix_mask, BIT(26)|BIT(25), 0x0); 
-	}
 
-}
 VOID
 PHY_SwChnl8188E(	// Call after initialization
 	IN	PADAPTER	Adapter,
@@ -3045,8 +3027,7 @@ PHY_SwChnl8188E(	// Call after initialization
 		#else
 		_PHY_SwChnl8192C(Adapter, channel);
 		#endif
-		if (IS_VENDOR_8188E_I_CUT_SERIES(Adapter))
-			phy_SpurCalibration_8188E( Adapter);
+
 		if(bResult)
 		{
 			//RT_TRACE(COMP_SCAN, DBG_LOUD, ("PHY_SwChnl8192C SwChnlInProgress TRUE schdule workitem done\n"));

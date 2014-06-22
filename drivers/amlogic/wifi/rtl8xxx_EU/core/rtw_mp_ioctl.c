@@ -1677,12 +1677,12 @@ _func_enter_;
 		return NDIS_STATUS_INVALID_LENGTH;
 
 	*poid_par_priv->bytes_rw = 8;
-	_rtw_memcpy(poid_par_priv->information_buf, &(adapter_to_pwrctl(Adapter)->pwr_mode), 8);
+	_rtw_memcpy(poid_par_priv->information_buf, &(Adapter->pwrctrlpriv.pwr_mode), 8);
 	*poid_par_priv->bytes_rw = poid_par_priv->information_buf_len;
 
 	RT_TRACE(_module_mp_, _drv_notice_,
 		 ("-oid_rt_pro_qry_pwrstate_hdl: pwr_mode=%d smart_ps=%d\n",
-		  adapter_to_pwrctl(Adapter)->pwr_mode, adapter_to_pwrctl(Adapter)->smart_ps));
+		  Adapter->pwrctrlpriv.pwr_mode, Adapter->pwrctrlpriv.smart_ps));
 
 _func_exit_;
 
@@ -2015,8 +2015,8 @@ static u32 mp_query_drv_var(_adapter *padapter, u8 offset, u32 var)
 	if (offset == 1) {
 		u16 tmp_blk_num;
 		tmp_blk_num = rtw_read16(padapter, SDIO_RX0_RDYBLK_NUM);
-		RT_TRACE(_module_mp_, _drv_err_, ("Query Information, mp_query_drv_var  SDIO_RX0_RDYBLK_NUM=0x%x   dvobj.rxblknum=0x%x\n", tmp_blk_num, adapter_to_dvobj(padapter)->rxblknum));
-		if (adapter_to_dvobj(padapter)->rxblknum != tmp_blk_num) {
+		RT_TRACE(_module_mp_, _drv_err_, ("Query Information, mp_query_drv_var  SDIO_RX0_RDYBLK_NUM=0x%x   padapter->dvobjpriv.rxblknum=0x%x\n", tmp_blk_num, padapter->dvobjpriv.rxblknum));
+		if (padapter->dvobjpriv.rxblknum != tmp_blk_num) {
 			RT_TRACE(_module_mp_,_drv_err_, ("Query Information, mp_query_drv_var  call recv rx\n"));
 		//	sd_recv_rxfifo(padapter);
 		}
@@ -2065,37 +2065,37 @@ static u32 mp_query_drv_var(_adapter *padapter, u8 offset, u32 var)
 	else if(offset >110 &&offset <116){
 		if(115==offset){
 			RT_TRACE(_module_mp_, _drv_emerg_, (" mp_query_drv_var(_drv_emerg_): offset(%d): query TRX access type: [tx_block_mode=%x,rx_block_mode=%x]\n",\
-															offset, adapter_to_dvobj(padapter)->tx_block_mode, adapter_to_dvobj(padapter)->rx_block_mode));
+															offset,padapter->dvobjpriv.tx_block_mode,padapter->dvobjpriv.rx_block_mode));
 		}
 		else {
 			switch(offset){
 				case 111:
-					adapter_to_dvobj(padapter)->tx_block_mode=1;
-					adapter_to_dvobj(padapter)->rx_block_mode=1;
+					padapter->dvobjpriv.tx_block_mode=1;
+					padapter->dvobjpriv.rx_block_mode=1;
 					RT_TRACE(_module_mp_, _drv_emerg_, \
 						(" mp_query_drv_var(_drv_emerg_): offset(%d): SET TRX access type:(TX block/RX block) [tx_block_mode=%x,rx_block_mode=%x]\n",\
-						offset, adapter_to_dvobj(padapter)->tx_block_mode, adapter_to_dvobj(padapter)->rx_block_mode));
+						offset,padapter->dvobjpriv.tx_block_mode,padapter->dvobjpriv.rx_block_mode));
 					break;
 				case 112:
-					adapter_to_dvobj(padapter)->tx_block_mode=1;
-					adapter_to_dvobj(padapter)->rx_block_mode=0;
+					padapter->dvobjpriv.tx_block_mode=1;
+					padapter->dvobjpriv.rx_block_mode=0;
 					RT_TRACE(_module_mp_, _drv_emerg_, \
 						(" mp_query_drv_var(_drv_emerg_): offset(%d): SET TRX access type:(TX block/RX byte) [tx_block_mode=%x,rx_block_mode=%x]\n",\
-						offset, adapter_to_dvobj(padapter)->tx_block_mode, adapter_to_dvobj(padapter)->rx_block_mode));
+						offset,padapter->dvobjpriv.tx_block_mode,padapter->dvobjpriv.rx_block_mode));
 					break;
 				case 113:
-					adapter_to_dvobj(padapter)->tx_block_mode=0;
-					adapter_to_dvobj(padapter)->rx_block_mode=1;
+					padapter->dvobjpriv.tx_block_mode=0;
+					padapter->dvobjpriv.rx_block_mode=1;
 					RT_TRACE(_module_mp_, _drv_emerg_, \
 						(" mp_query_drv_var(_drv_emerg_): offset(%d): SET TRX access type:(TX byte/RX block) [tx_block_mode=%x,rx_block_mode=%x]\n",\
-						offset, adapter_to_dvobj(padapter)->tx_block_mode, adapter_to_dvobj(padapter)->rx_block_mode));
+						offset,padapter->dvobjpriv.tx_block_mode,padapter->dvobjpriv.rx_block_mode));
 					break;
 				case 114:
-					adapter_to_dvobj(padapter)->tx_block_mode=0;
-					adapter_to_dvobj(padapter)->rx_block_mode=0;
+					padapter->dvobjpriv.tx_block_mode=0;
+					padapter->dvobjpriv.rx_block_mode=0;
 					RT_TRACE(_module_mp_, _drv_emerg_, \
 						(" mp_query_drv_var(_drv_emerg_): offset(%d): SET TRX access type:(TX byte/RX byte) [tx_block_mode=%x,rx_block_mode=%x]\n",\
-						offset, adapter_to_dvobj(padapter)->tx_block_mode, adapter_to_dvobj(padapter)->rx_block_mode));
+						offset,padapter->dvobjpriv.tx_block_mode,padapter->dvobjpriv.rx_block_mode));
 					break;
 				default :
 					break;
@@ -2882,7 +2882,7 @@ NDIS_STATUS oid_rt_set_power_down_hdl(struct oid_par_priv *poid_par_priv)
 	u8		bpwrup;
 	NDIS_STATUS	status = NDIS_STATUS_SUCCESS;
 #ifdef PLATFORM_LINUX
-#if defined(CONFIG_SDIO_HCI) || defined(CONFIG_GSPI_HCI)
+#ifdef CONFIG_SDIO_HCI
 	PADAPTER	padapter = (PADAPTER)(poid_par_priv->adapter_context);
 #endif
 #endif

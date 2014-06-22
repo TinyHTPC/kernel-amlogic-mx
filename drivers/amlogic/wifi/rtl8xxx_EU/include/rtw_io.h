@@ -45,6 +45,15 @@
 #include <linux/usb/ch9.h>
 #endif
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35))
+#define rtw_usb_buffer_alloc(dev, size, mem_flags, dma) usb_alloc_coherent((dev), (size), (mem_flags), (dma))
+#define rtw_usb_buffer_free(dev, size, addr, dma) usb_free_coherent((dev), (size), (addr), (dma))
+#else
+#define rtw_usb_buffer_alloc(dev, size, mem_flags, dma) usb_buffer_alloc((dev), (size), (mem_flags), (dma))
+#define rtw_usb_buffer_free(dev, size, addr, dma) usb_buffer_free((dev), (size), (addr), (dma))
+#endif
+
+
 #endif //CONFIG_USB_HCI
 
 #endif //PLATFORM_LINUX
@@ -147,6 +156,8 @@ struct _io_ops
 
 		u32 (*_read_port)(struct intf_hdl *pintfhdl, u32 addr, u32 cnt, u8 *pmem);
 		u32 (*_write_port)(struct intf_hdl *pintfhdl, u32 addr, u32 cnt, u8 *pmem);
+
+		int (*_write_port_sync)(struct intf_hdl *pintfhdl, u32 addr, u32 cnt, u8 *pmem);
 
 		u32 (*_write_scsi)(struct intf_hdl *pintfhdl,u32 cnt, u8 *pmem);
 
@@ -324,22 +335,8 @@ struct reg_protocol_wt {
 #endif
 
 };
-#ifdef CONFIG_PCI_HCI
-#define MAX_CONTINUAL_IO_ERR 4
-#endif
-
-#ifdef CONFIG_USB_HCI
-#define MAX_CONTINUAL_IO_ERR 4
-#endif
-
-#ifdef CONFIG_SDIO_HCI
-#define SD_IO_TRY_CNT (8)
-#define MAX_CONTINUAL_IO_ERR SD_IO_TRY_CNT
-#endif
 
 
-int rtw_inc_and_chk_continual_io_error(struct dvobj_priv *dvobj);
-void rtw_reset_continual_io_error(struct dvobj_priv *dvobj);
 
 /*
 Below is the data structure used by _io_handler
@@ -396,8 +393,8 @@ extern int _rtw_write16_async(_adapter *adapter, u32 addr, u16 val);
 extern int _rtw_write32_async(_adapter *adapter, u32 addr, u32 val);
 
 extern void _rtw_write_mem(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem);
-extern u32 _rtw_write_port(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem);
-u32 _rtw_write_port_and_wait(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem, int timeout_ms);
+extern void _rtw_write_port(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem);
+extern int _rtw_write_port_sync(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem);
 extern void _rtw_write_port_cancel(_adapter *adapter);
 
 #ifdef DBG_IO
@@ -431,7 +428,7 @@ extern int dbg_rtw_writeN(_adapter *adapter, u32 addr ,u32 length , u8 *data, co
 
 #define rtw_write_mem(adapter, addr, cnt, mem) _rtw_write_mem((adapter), addr, cnt, mem)
 #define rtw_write_port(adapter, addr, cnt, mem) _rtw_write_port(adapter, addr, cnt, mem)
-#define rtw_write_port_and_wait(adapter, addr, cnt, mem, timeout_ms) _rtw_write_port_and_wait((adapter), (addr), (cnt), (mem), (timeout_ms))
+#define rtw_write_port_sync(adapter, addr, cnt, mem) _rtw_write_port_sync((adapter), (addr), (cnt), (mem))
 #define rtw_write_port_cancel(adapter) _rtw_write_port_cancel(adapter)
 #else //DBG_IO
 #define rtw_read8(adapter, addr) _rtw_read8((adapter), (addr))
@@ -452,7 +449,7 @@ extern int dbg_rtw_writeN(_adapter *adapter, u32 addr ,u32 length , u8 *data, co
 
 #define rtw_write_mem(adapter, addr, cnt, mem) _rtw_write_mem((adapter), (addr), (cnt), (mem))
 #define rtw_write_port(adapter, addr, cnt, mem) _rtw_write_port((adapter), (addr), (cnt), (mem))
-#define rtw_write_port_and_wait(adapter, addr, cnt, mem, timeout_ms) _rtw_write_port_and_wait((adapter), (addr), (cnt), (mem), (timeout_ms))
+#define rtw_write_port_sync(adapter, addr, cnt, mem) _rtw_write_port_sync((adapter), (addr), (cnt), (mem))
 #define rtw_write_port_cancel(adapter) _rtw_write_port_cancel((adapter))
 #endif //DBG_IO
 
@@ -488,7 +485,7 @@ extern void async_write_mem(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem);
 extern void async_write_port(_adapter *adapter, u32 addr, u32 cnt, u8 *pmem);
 
 
-int rtw_init_io_priv(_adapter *padapter, void (*set_intf_ops)(struct _io_ops *pops));
+int rtw_init_io_priv(_adapter *padapter);
 
 
 extern uint alloc_io_queue(_adapter *adapter);

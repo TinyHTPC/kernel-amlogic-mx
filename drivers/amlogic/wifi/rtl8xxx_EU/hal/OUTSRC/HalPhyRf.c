@@ -431,15 +431,11 @@ phy_IQCalibrate_8192C(
 							rFPGA0_RFMOD,			rFPGA0_AnalogParameter4,
 							rOFDM0_XAAGCCore1,		rOFDM0_XBAGCCore1						
 						};		
-		u4Byte	retryCount;
 #if MP_DRIVER
-	if (pAdapter->registrypriv.mp_mode == 1)
-		retryCount = 9;
-	else
+	const u4Byte	retryCount = 9;
+#else
+	const u4Byte	retryCount = 2;
 #endif
-		retryCount = 2;
-
-
 	//Neil Chen--2011--05--19--
        //3 Path Div	
 	u1Byte                 rfPathSwitch=0x0;
@@ -847,13 +843,10 @@ phy_APCalibrate_8192C(
 	s4Byte			BB_offset, delta_V, delta_offset;
 
 #if MP_DRIVER == 1
-if (pAdapter->registrypriv.mp_mode == 1)
-{
 	PMPT_CONTEXT	pMptCtx = &(pAdapter->MptCtx);	
 
 	pMptCtx->APK_bound[0] = 45;
 	pMptCtx->APK_bound[1] = 52;		
-}
 #endif
 
 	RTPRINT(FINIT, INIT_IQK, ("==>phy_APCalibrate_8192C() delta %d\n", delta));
@@ -870,10 +863,6 @@ if (pAdapter->registrypriv.mp_mode == 1)
 #if MP_DRIVER != 1
 	return;
 #endif
-
-	if (pAdapter->registrypriv.mp_mode != 1)
-		return;
-
 	//settings adjust for normal chip
 	for(index = 0; index < PATH_NUM; index ++)
 	{
@@ -1208,12 +1197,9 @@ PHY_IQCalibrate_8192C(
 		return;
 	
 #if MP_DRIVER == 1	
-if (pAdapter->registrypriv.mp_mode == 1)
-{
 	bStartContTx = pAdapter->MptCtx.bStartContTx;
 	bSingleTone = pAdapter->MptCtx.bSingleTone;
 	bCarrierSuppression = pAdapter->MptCtx.bCarrierSuppression;	
-}
 #endif
 	
 	//ignore IQK when continuous Tx
@@ -1407,12 +1393,9 @@ PHY_LCCalibrate_8192C(
 	PADAPTER	BuddyAdapter = pAdapter->BuddyAdapter;
 
 #if MP_DRIVER == 1	
-if (pAdapter->registrypriv.mp_mode == 1)
-{
 	bStartContTx = pAdapter->MptCtx.bStartContTx;
 	bSingleTone = pAdapter->MptCtx.bSingleTone;
-	bCarrierSuppression = pAdapter->MptCtx.bCarrierSuppression;
-}
+	bCarrierSuppression = pAdapter->MptCtx.bCarrierSuppression;		
 #endif
 
 #if DISABLE_BB_RF
@@ -1514,7 +1497,7 @@ ODM_ResetIQKResult(
 	if (!IS_HARDWARE_TYPE_8192D(Adapter))
 		return;
 #endif
-	ODM_RT_TRACE(pDM_Odm,ODM_COMP_CALIBRATION, ODM_DBG_LOUD,("PHY_ResetIQKResult:: settings regs %d default regs %d\n", (u32)(sizeof(pDM_Odm->RFCalibrateInfo.IQKMatrixRegSetting)/sizeof(IQK_MATRIX_REGS_SETTING)), IQK_Matrix_Settings_NUM));
+	ODM_RT_TRACE(pDM_Odm,ODM_COMP_CALIBRATION, ODM_DBG_LOUD,("PHY_ResetIQKResult:: settings regs %d default regs %d\n", sizeof(pDM_Odm->RFCalibrateInfo.IQKMatrixRegSetting)/sizeof(IQK_MATRIX_REGS_SETTING), IQK_Matrix_Settings_NUM));
 	//0xe94, 0xe9c, 0xea4, 0xeac, 0xeb4, 0xebc, 0xec4, 0xecc
 
 	for(i = 0; i < IQK_Matrix_Settings_NUM; i++)

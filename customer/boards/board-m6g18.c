@@ -3104,6 +3104,9 @@ static __init void meson_init_machine(void)
      *  Meson6 socket board ONLY
      *  Do *NOT* merge for other BSP
      */
+        aml_set_reg32_bits(SECBUS2_REG_ADDR(0), 1, 0, 1);   // set TEST_n output mode
+        aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 0, 31, 1); // set TEST_n pin H
+
     aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 0,  3, 1);
     aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 0, 19, 1);
     aml_set_reg32_bits(AOBUS_REG_ADDR(0x24), 0,  2, 1);
